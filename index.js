@@ -253,6 +253,10 @@ exports.extract = function (cwd, opts) {
 
     var onsymlink = function () {
       if (win32) return next() // skip symlinks on win for now before it can be tested
+      if (header.linkname.indexOf('..') !== -1) {
+        console.log('skipping bad symlink path', header.linkname);
+        return next();
+      }
       xfs.unlink(name, function () {
         xfs.symlink(header.linkname, name, stat)
       })
@@ -261,6 +265,10 @@ exports.extract = function (cwd, opts) {
     var onlink = function () {
       if (win32) return next() // skip links on win for now before it can be tested
       xfs.unlink(name, function () {
+        if (header.linkname.indexOf('..') !== -1) {
+          console.log('skipping bad link path', header.linkname);
+          return next();
+        }
         var srcpath = path.resolve(cwd, header.linkname)
 
         xfs.link(srcpath, name, function (err) {
